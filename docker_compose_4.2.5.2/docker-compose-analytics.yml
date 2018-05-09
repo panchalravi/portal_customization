@@ -1,0 +1,246 @@
+version: '3.3'
+volumes:
+  kafka-data-volume:
+  zookeeper-data-volume:
+  elasticsearch-data-volume:
+  elasticsearch-backup-volume:
+networks:
+  private:
+    driver: overlay
+    attachable: false
+  public:
+    driver: overlay
+    attachable: true
+services:
+  zookeeper1:
+    image: jarvis.packages.ca.com/analytics/zookeeper-3.4.8:2.3.1.126
+    environment:
+      - ZOOKEEPER_SERVERS=0.0.0.0
+    volumes:
+      - zookeeper-data-volume:/opt/ca/zookeeper/data
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.jarvis.zookeeper1 == true
+      resources:
+        limits:
+          memory: 960m
+    networks:
+      - private
+  kafka1:
+    image: jarvis.packages.ca.com/analytics/kafka-0.10.1.0:2.3.1.130
+    environment:
+      - KAFKA_HOST=kafka1
+      - ZOOKEEPER_CONNECT=zookeeper1:2181
+      - ZOOKEEPER_CONNECT_TIMEOUT_MS=15000
+      - ZOOKEEPER_SESSION_TIMEOUT_MS=15000
+      - REPLICA_FETCH_MAX_BYTES=31457280
+      - MESSAGE_MAX_BYTES=31457280
+      - LOG_RETENTION_TIME=24
+      - BROKER_ID=1
+      - s
+    volumes:
+      - kafka-data-volume:/opt/ca/kafka/data
+    networks:
+      - private
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.jarvis.kafka1 == true
+      resources:
+        limits:
+          memory: 960m
+  schemaregistry:
+    image: jarvis.packages.ca.com/analytics/jarvis_schema_registry:2.3.1.17
+    environment:
+      - WAIT_BEFORE_STARTING_SR=20
+      - ZOOKEEPER_CONNECT=zookeeper1:2181
+      - KAFKA_URLS=kafka1:9092
+    networks:
+      - private
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 960m
+      placement:
+          constraints:
+            - node.labels.jarvis.services == true
+  elasticsearch:
+    image: jarvis.packages.ca.com/analytics/elasticsearch-5.6.5:2.3.1.134
+    environment:
+      - ES_CLUSTER=jarvis-docker
+      - PATH_REPO_LOCATION=/opt/ca/elasticsearch/backup
+      - HOT_OR_WARM=hot
+      - ZEN_MINIMUM_MASTER_NODES=1
+    deploy:
+      mode: global
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 3414m
+      placement:
+        constraints:
+          - node.labels.jarvis.elasticsearch == true
+    networks:
+      - private
+    volumes:
+      - elasticsearch-data-volume:/var/data/elasticsearch
+      - elasticsearch-backup-volume:/opt/ca/elasticsearch/backup
+  indexer:
+    image: jarvis.packages.ca.com/analytics/jarvis_indexer:2.3.1.47
+    environment:
+      - ES_CLUSTER=jarvis-docker
+      - ES_TRANSPORT_URLS=elasticsearch:9300
+      - KAFKA_URLS=kafka1:9092
+      - USE_AVRO_SCHEMA=true
+      - CONSUMER_COUNT=4
+      - SCHEMA_REGISTRY_URLS=schemaregistry:8081
+      - LOG_LEVEL=INFO
+    networks:
+      - private
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1920m
+      placement:
+        constraints:
+          - node.labels.jarvis.services == true
+  verifier:
+    image: jarvis.packages.ca.com/analytics/jarvis_verifier:2.3.1.49
+    environment:
+      - ES_CLUSTER=jarvis-docker
+      - ES_TRANSPORT_URLS=elasticsearch:9300
+      - KAFKA_URLS=kafka1:9092
+      - ZOOKEEPER_URLS=zookeeper1:2181
+      - USE_AVRO_SCHEMA=true
+      - TOPIC_PARTITIONS=4
+      - TOPIC_REPLICATIONS=1
+      - CONSUMER_COUNT=4
+      - SCHEMA_REGISTRY_URLS=schemaregistry:8081
+      - LOG_LEVEL=INFO
+    networks:
+      - private
+    deploy:
+      resources:
+        limits:
+          memory: 1920m
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.jarvis.services == true
+  apis:
+    image: jarvis.packages.ca.com/analytics/jarvis_api:2.3.1.99
+    environment:
+      - ES_CLUSTER=jarvis-docker
+      - ES_HTTP_URL=elasticsearch:9200
+      - ES_TRANSPORT_URLS=elasticsearch:9300
+      - KAFKA_URLS=kafka1:9092
+      - ZOOKEEPER_URLS=zookeeper1:2181
+      - ONBOARDING_SHARD_COUNT=1
+      - ONBOARDING_REPLICA_COUNT=1
+      - USE_AVRO_SCHEMA=true
+      - DATE_FORMATS=yyyy-MM-dd'T'HH:mm:ss.SSSZ|yyyy-MM-dd'T'HH:mm:ssZ|yyyy-MM-dd'T'HH:mmZ|yyyy-MM-dd|epoch_millis
+      - SCHEMA_REGISTRY_URLS=http:\/\/schemaregistry:8081
+      - ENABLE_ACCESS_LOG=false
+      - LOG_LEVEL=INFO
+      - KRON_URL=kron:8080
+      - TOPIC_PARTITIONS=4
+      - CORE_CONF_fs_defaultFS=hdfs://hadoopnamenode:9000
+    ports:
+      - "8080:8080"
+    networks:
+      - public
+      - private
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 2880m
+      placement:
+        constraints:
+          - node.labels.jarvis.services == true
+  kron:
+    image: jarvis.packages.ca.com/analytics/jarvis_kron:2.3.1.23
+    environment:
+      - ES_CLUSTER=jarvis-docker
+      - ES_HTTP_URL=elasticsearch:9300
+      - KAFKA_URLS=kafka1:9092
+      - ZOOKEEPER_URLS=zookeeper1:2181
+      - LOG_LEVEL=INFO
+    ports:
+      - "8081:8080"
+    networks:
+      - private
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 960m
+      placement:
+        constraints:
+          - node.labels.jarvis.utilities == true
+  utils:
+    image: jarvis.packages.ca.com/analytics/jarvis_es_utils:2.3.1.87
+    environment:
+      - ES_CLUSTER=jarvis-docker
+      - ES_TRANSPORT_URLS=elasticsearch:9300
+      - KRON_URL=kron:8080
+      - KAFKA_URLS=kafka1:9092
+      - ZOOKEEPER_URLS=zookeeper1:2181
+      - SCHEMA_REGISTRY_URLS=schemaregistry:8081
+      - REPOSITORY_NAME=Repository
+      - LOCATION=/opt/ca/elasticsearch/backup
+      - EXCLUDE_INDICES=index_list
+      - DEFAULT_RETENTION_PERIOD=45
+      - FORCE_MERGE_CRON=0 0 22 * * ?
+      - INDEX_ROLLOVER_CRON=0/30 * * * * ?
+      - PURGE_CRON=0 0 21 * * ?
+      - SNAPSHOT_CRON=0 0 23 * * ?
+      - ES_JMETRIC_CRON=0/60 * * * * ?
+      - DELETE_TENANT_CRON=0 0 0/1 * * ?
+      - HOTWARM_ROLLOVER_CRON=0 0 20 * * ?
+      - HOTWARM_ROLLOVER_PERIOD=0
+      - TYPE=fs
+      - ACCESS_KEY=
+      - SECRET_KEY=
+      - REGION=
+      - BUCKET=
+      - INDEX_LIMIT=
+      - LOG_LEVEL=INFO
+    networks:
+      - private
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 960m
+      placement:
+        constraints:
+          - node.labels.jarvis.utilities == true
+  ldds-web:
+    image: jarvis.packages.ca.com/analytics/ldds:2.1.8.1
+    environment:
+      - LDDSUSERNAME=admin
+      - LDDSHOSTNAME=portaldb
+      - LDDSPORTNO=5432
+      - LDDSUSERPWD=7layer
+      - LDDSDBNAME=lddsdb
+      - POSTGRES_CONTAINER=true
+      - INITIAL_HEAPSIZE=1024m
+      - MAX_HEAPSIZE=1792m
+      - APIM_POSTGRES_CONTAINER=true
+    networks:
+      - public
+      - private
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1920m
+      placement:
+        constraints:
+          - node.labels.jarvis.ldds == true

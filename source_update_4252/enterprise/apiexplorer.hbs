@@ -1,0 +1,955 @@
+<script id="portal-apiexplorer-swagger-view-template" type="text/x-handlebars-template">
+  {{!-- page title --}}
+  <div class="row-fluid">
+    <div class="span12">
+      <h1>{{apiName}}</h1>
+    </div>
+  </div>
+  <div class="row-fluid swagger-section">
+    <div class="span12">
+      {{!-- api description --}}
+      <div class="row-fluid">
+        <div class="span6">
+          <p id="apiexplorer-api-description">{{apiDescription}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script id="portal-apiexplorer-default-view-template" type="text/x-handlebars-template">
+  <div class="row-fluid apiexplorer-default-view">
+    <div class="span8">
+      <div class="hero-unit alternate api-explorer">
+        <h3>{{labelSelectApi}}</h3>
+      </div>
+    </div>
+    <div class="span4">
+      <div class="trial-video-sidebar">
+        <h4 class="trial-video-sidebar-header">{{labelLinkTestApiHow}}</h4>
+        <div class="trial-video-sidebar-content">
+          <div class="trial-video-sidebar-content-inner">
+            <p>{{labelTrialTestApiContent}}</p>
+          </div>
+	  {{!--
+          <div class="trial-video-sidebar-video-link">
+            <a href="{{labelVideoTestApiHref}}" data-poster="{{labelVideoTestApiPoster}}" class="video-modal-trigger wizard-trial-help-video-trigger" target="_blank" title="{{labelVideoTestApiTitle}}">
+              {{labelPlayVideo}} <img src="images/play-icon.png" width="19" height="19" />
+            </a>
+          </div>
+          <div class="trial-video-sidebar-links">
+            <p><a href="{{labelLinkTestApiDocsHref}}" target="_blank">{{labelButtonViewDocumentation}}</a></p>
+          </div>
+	  --}}
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script id="portal-apiexplorer-sidebar-view-template" type="text/x-handlebars-template">
+  <div class="api-explorer-sidebar-header">
+    <div class="api-explorer-api-name">{{title}}</div>
+  </div>
+  <div class="api-explorer-sidebar-auth">
+    <form>
+      {{!-- Choose API --}}
+      <div class="control-group">
+        <label>{{labelApi}}</label>
+        <section class="layer7-selections" id="apiexplorer-api-selection" data-button-group-threshold="0">
+          <div class="row-fluid">
+            <input type="hidden" id="apiexplorer-api" name="apiexplorer-api" value="" class="span12"
+                   data-required="true" data-required-message="{{error.required}}"/>
+          </div>
+        </section>
+      </div>
+      {{!-- choose app/api key --}}
+      <div class="api-key-section control-group hide">
+        <label>{{labelApiKey}}</label>
+        <section class="layer7-selections" id="apiexplorer-api-key-selection" data-button-group-threshold="0">
+          <div class="row-fluid">
+            <input type="hidden" id="apiexplorer-api-key" name="apiexplorer-api-key" value="" class="span12"/>
+          </div>
+          {{#if canAddApp}}
+          <div class="row-fluid sidebar-create-api">
+              <a data-action="create-app">{{labelCreateApp}}</a>
+          </div>
+          {{/if}}
+
+        </section>
+      </div>
+
+    </form>
+    <hr/>
+    <section class="auth-config"></section>
+
+  </div>
+</script>
+<script id="portal-apiexplorer-auth-config-view-template" type="text/x-handlebars-template">
+  <p>
+    <strong>{{labelAuthType}}</strong><br>
+    <span name="apiexplorer-setting-auth-type" data-value="none" class="display-text">{{labelAuthTypeNone}}</span>
+    <select name="apiexplorer-config-auth-type" class="edit-text hidden" data-default-value="none">
+      <option selected="selected" value="none">{{labelAuthTypeNone}}</option>
+      <option value="apikey">{{labelAuthTypeApiKey}}</option>
+      <option value="oauth2">{{labelAuthTypeOauth2}}</option>
+    </select>
+  </p>
+
+  <div id="apiexplorer-authtype-fields" class="hidden"></div>
+
+  <p>
+    <button class="edit-auth btn btn-primary btn-mini">{{labelEdit}}</button>
+    <button class="default-auth btn btn-primary btn-mini">{{labeldefaults}}</button>
+    <button class="save-auth btn btn-success btn-mini">{{labelSave}}</button>
+  </p>
+</script>
+
+<script id="portal-apiexplorer-authtype-apikey-template" type="text/x-handlebars-template">
+  <form name="authtype-fields">
+    <div name="apikey-options">
+      <div class="control-group api-key-options">
+        <label>{{labelApiKey}} *</label>
+        <span name="apiexplorer-setting-api-key" data-value="{{apiKey}}" class="display-text hidden">{{apiKey}}</span>
+        <input id="apiexplorer-auth-apikey-value" name="apiexplorer-config-api-key" type="text" value="{{apiKey}}"
+               data-default-value="{{apiKey}}" data-required="true" data-required-message="{{error.required}}"
+               maxlength="255" data-maxlength="255" data-maxlength-message="{{error.maxlength}}" class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+      <div class="control-group api-key-options">
+        <label>{{labelApiKeyParameterName}} *</label>
+        <span name="apiexplorer-setting-api-key-param-name" data-value="apikey"
+              class="display-text hidden">apikey</span>
+        <input id="apiexplorer-auth-apikey-name" name="apiexplorer-config-api-key-param-name" type="text" value="apikey"
+               data-default-value="apikey" data-required="true" data-requred-message="{{error.required}}"
+               maxlength="255" data-maxlength="255" data-maxlength-message="{{error.maxlength}}" class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+      <div class="control-group api-key-options">
+        <label>{{labelApiKeyType}} *</label>
+        <span name="apiexplorer-setting-api-key-type" data-value="query" class="display-text hidden">{{labelApiKeyTypeQuery}}</span>
+        <select id="apiexplorer-auth-apikey-type" name="apiexplorer-config-api-key-type" class="edit-text"
+                data-required="true" data-required-message="{{error.required}}" data-default-value="query">
+          <option selected="selected" value="query">{{labelApiKeyTypeQuery}}</option>
+          <option value="header">{{labelApiKeyTypeHeader}}</option>
+        </select>
+      </div>
+    </div>
+  </form>
+</script>
+
+<script id="portal-apiexplorer-authtype-oauth2-template" type="text/x-handlebars-template">
+  <form name="authtype-fields">
+    <div class="oauth2-options control-group">
+      <label>{{labelGrantType}} *</label>
+      <span name="apiexplorer-setting-grant-type" class="display-text"/>
+      <select id="grant-type-input" data-required="true" data-required-message="{{error.required}}" class="edit-text">
+        <option value="" disabled="disabled" selected="selected">{{labelGrantTypeDefault}}</option>
+        <option value="code">{{labelAuthCode}}</option>
+        <option value="token">{{labelImplicit}}</option>
+        <option value="password">{{labelPasswordCreds}}</option>
+        <option value="client_credentials">{{labelClientCreds}}</option>
+      </select>
+    </div>
+    <div id="oauth2-field-container" class="hidden">
+      <div class="control-group" name="oauth2-apikey-container">
+        <label>{{labelApiKey}} *</label>
+        <span name="client_id" class="display-text"/>
+        <input id="client_id" type="text" data-required="true" data-required-message="{{error.required}}"
+               value="{{apiKey}}" maxlength="255" data-maxlength="255" data-maxlength-message="{{error.maxlength}}"
+               class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+      <div class="control-group" name="oauth2-secret-container">
+        <label>{{labelSharedSecret}} *</label>
+        <span name="client_secret" class="display-text"/>
+        <input id="client_secret" type="text" data-required="true" data-required-message="{{error.required}}"
+               value="{{keySecret}}" maxlength="255" data-maxlength="255" data-maxlength-message="{{error.maxlength}}"
+               class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+      <div class="control-group">
+        <label>{{labelScope}}</label>
+        <span name="scope" class="display-text"/>
+        <input id="scope" type="text" value="" maxlength="255" data-maxlength="255" class="edit-text"
+               data-maxlength-message="{{error.maxlength}}"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+      <div class="control-group" name="oauth2-authorize-endpoint-container">
+        <label>{{labelAuthEndpoint}} *</label>
+        <span name="authorize_endpoint" class="display-text"/>
+        <input id="authorize_endpoint" type="text" data-type="url" data-type-url-message="{{error.url}}"
+               data-required="true" data-required-message="{{error.required}}" maxlength="255" data-maxlength="255"
+               data-maxlength-message="{{error.maxlength}}" class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}} {{helptextUrl}}</p>
+      </div>
+      <div class="control-group" name="oauth2-token-endpoint-container">
+        <label>{{labelTokenEndpoint}} *</label>
+        <span name="token_endpoint" class="display-text"/>
+        <input id="token_endpoint" type="text" data-type="url" data-type-url-message="{{error.url}}"
+               data-required="true" data-required-message="{{error.required}}" value="" maxlength="255"
+               data-maxlength="255" data-maxlength-message="{{error.maxlength}}" class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}} {{helptextUrl}}</p>
+      </div>
+      <div class="control-group" name="oauth2-username-container">
+        <label>{{labelUsername}} *</label>
+        <span name="oauth2_username" class="display-text"/>
+        <input id="oauth2_username" type="text" data-required="true" data-required-message="{{error.required}}" value=""
+               maxlength="255" data-maxlength="255" data-maxlength-message="{{error.maxlength}}" class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+      <div class="control-group" name="oauth2-password-container">
+        <label>{{labelPassword}} *</label>
+        <span name="oauth2_password" class="display-text masked"/>
+        <input id="oauth2_password" type="password" data-required="true" data-required-message="{{error.required}}"
+               value="" maxlength="255" data-maxlength="255" data-maxlength-message="{{error.maxlength}}"
+               class="edit-text"/>
+
+        <p class="help-block">{{helptextMaxLength}}</p>
+      </div>
+    </div>
+  </form>
+</script>
+
+<script id="portal-apiexplorer-no-api-key-view-template" type="text/x-handlebars-template">
+  <div class="hero-unit alternate">
+    <h3 class="red1">{{labelNoApiKey}} {{#unless isDeveloper}}<a class="create-app">{{/unless}}{{labelCreateApp}}{{#unless
+      isDeveloper}}</a>{{/unless}}</h3>
+  </div>
+</script>
+
+<script id="portal-apiexplorer-error-view-template" type="text/x-handlebars-template">
+  <div class="hero-unit alternate">
+    <h3 class="red1">{{errorMsg}}</h3>
+  </div>
+</script>
+
+<script id="swagger-main-view-template" type="text/x-handlebars-template">
+  <div class="info" id="api_info">
+    {{#if info}}
+    <div class="info_title">{{info.title}}</div>
+    <div class="info_description">{{info.description}}</div>
+    {{#if info.termsOfServiceUrl}}
+    <div class="info_tos">
+      <a href="{{info.termsOfServiceUrl}}">Terms of service</a>
+    </div>
+    {{/if}}
+    {{#if info.contact}}
+    <div class="info_contact">
+      <a href="mailto:{{info.contact.email}}">Contact the developer</a>
+    </div>
+    {{/if}}
+    {{#if info.license}}
+    <div class="info_license">
+      <a href="{{info.license.url}}">{{info.license.name}}</a>
+    </div>
+    {{/if}}
+    {{/if}}
+  </div>
+
+  <div class="external_docs" id="top_external_doc">
+     {{#if externalDocs}}
+         {{externalDocs.description}} <a href="{{externalDocs.url}}" target="_blank" id="external_docs_root">{{externalDocs.url}}</a>
+     {{/if}}
+  </div>
+  <div class="container" id="resources_container">
+    <ul id="resources"></ul>
+  </div>
+</script>
+
+<script id="swagger-operation-view-template" type="text/x-handlebars-template">
+  <div class="row-fluid">
+    <div class="span12">
+      <div class="layer7-accordion" id="{{nickname}}" data-id="{{encodedParentId}}_{{nickname}}">
+        <div class="accordion-group">
+          {{! method in class may not be required }}
+          <div class="accordion-heading {{method}}">
+            <a class="accordion-toggle" data-toggle="collapse">
+              <ul class="inline">
+                <li data-type="endpoint-method">{{method}}</li>
+                <li data-type="endpoint-path">{{path}}</li>
+                <li data-type="endpoint-summary" class="pull-right">{{summary}}</li>
+                {{! externalDocs is in the operation.externalDocs }}
+              </ul>
+            </a>
+          </div>
+          {{! .accordion-heading end }}
+          <div class="accordion-body collapse">
+            <div class="accordion-inner">
+              {{#if description}}
+              <h5>{{labelImplementationNotes}}</h5>
+              <div class="markdown">{{description}}</div>
+              {{/if}}
+              {{#if operation.externalDocs }}
+                  {{operation.externalDocs.description}} <a href="{{operation.externalDocs.url}}" target="_blank" id="{{nickname}}_external_docs_operation">{{operation.externalDocs.url}}</a>
+              {{/if}}
+              {{#oauth}}
+              {{! this class look important to hook in functionality? }}
+              <div class="auth">
+                {{! this class look important to hook in functionality? }}
+                <span class="api-ic ic-error"></span>
+                {{/oauth}}
+                {{#each oauth}}
+                {{! these inline styles might need tweaking }}
+                <div id="api_information_panel" style="top: 526px; left: 776px; display: none;">
+                  {{#each this}}
+                  <div title="{{this.description}}">{{this.scope}}</div>
+                  {{/each}}
+                </div>
+                {{/each}}
+                {{#oauth}}
+              </div>
+              {{/oauth}}
+              {{#oauth}}
+              {{! this class look important to hook in functionality? }}
+              <div class="access">
+                {{! this class look important to hook in functionality? }}
+                <span class="api-ic ic-off" title="click to authenticate"></span>
+              </div>
+              {{/oauth}}
+              {{#if type}}
+              <h5>{{labelResponseClass}}{{#if successCode}}(<span data-sw-translate>{{labelStatus}}</span> {{successCode}}){{/if}}</h5>
+              {{! this class look important to hook in functionality? }}
+              <p><span class="model-signature"></span></p>
+              {{! this class look important to hook in functionality? }}
+              <div class="response-content-type"></div>
+              {{/if}}
+
+              <form accept-charset="UTF-8" class="try-it-out-forms" data-path="{{path}}" data-method="{{method}}">
+
+                <section class="parameters">
+                  <h5>{{labelParameters}}</h5>
+
+                  <div class="layer7-infinite-entries wide-content">
+                    <table class="table table-striped table-hover table-condensed">
+                      <thead>
+                      <tr>
+                        <th>{{labelParameter}}</th>
+                        <th>{{labelParameterValue}}</th>
+                        <th>{{labelParameterDescription}}</th>
+                        <th>{{labelParameterType}}</th>
+                        <th>{{labelParameterDataType}}</th>
+                        <th></th>
+                      </tr>
+                      </thead>
+                      {{! this class look important to hook in functionality? }}
+                      <tbody class="operation-params">
+                      {{#unless parameters}}
+                      <tr>
+                        <td colspan="6">{{labelNoWadlParameters}}</td>
+                      </tr>
+                      {{/unless}}
+                      </tbody>
+                    </table>
+                    <p>
+                      <button type="button" class="add-entry btn btn-primary">{{labelAddParameter}}</button>
+                    </p>
+                  </div>
+                </section>
+
+                {{#if responseMessages}}
+                <h5>{{labelResponseMessage}}</h5>
+                <table class="table table-striped table-hover table-condensed">
+                  <thead>
+                  <tr>
+                    <th>{{labelResponseHttpStatusCode}}</th>
+                    <th>{{labelResponseReason}}</th>
+                    <th>{{labelResponseModel}}</th>
+                    <th>{{labelResponseHeaders}}</th>
+                  </tr>
+                  </thead>
+                  {{! this class look important to hook in functionality? }}
+                  <tbody class="operation-status"></tbody>
+                </table>
+                {{/if}}
+                {{#if isReadOnly}}
+                {{else}}
+                <button type="submit" class="submit btn btn-primary" name="commit">{{labelSubmit}}
+                </button>
+                {{! this class look important to hook in functionality? }}
+                <button type="button" class="response_hider btn" style="display:none">{{labelHideResponse}}</button>
+                {{! not sure what this is, doesnt show anywhere in layout }}
+                <span class="response_throbber" style="display:none"></span>
+                {{/if}}
+              </form>
+
+              {{! this class look important to hook in functionality? }}
+              <div class="response" style="display:none">
+                <div class="row-fluid">
+                  <div class="span12">
+                    <h5>{{labelRequestUrl}}</h5>
+                    {{! this class look important to hook in functionality? }}
+                    <div class="block request_url"></div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span12">
+                    <h5>{{labelResponseCode}}</h5>
+                    {{! this class look important to hook in functionality? }}
+                    <div class="block response_code"></div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span12">
+                    <h5>{{labelResponseHeader}}</h5>
+                    {{! this class look important to hook in functionality? }}
+                    <div class="block response_headers"></div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span12">
+                    <h5>{{labelResponseBody}}</h5>
+                    {{! this class look important to hook in functionality? }}
+                    <div class="block response_body"></div>
+                  </div>
+                </div>
+                <hr/>
+                <div class="row-fluid">
+                  <div class="span12">
+                    <h5>{{labelCodeSamples}}</h5>
+                    <select name="code-sample-picker">
+                      <option value="" selected="selected" disabled="disabled">{{labelSelectLanguage}}</option>
+                      <option value="curl">{{labelCurl}}</option>
+                      <option value="java">{{labelJava}}</option>
+                      <option value="javascript">{{labelJavascript}}</option>
+                      <option value="node">{{labelNode}}</option>
+                      <option value="objc">{{labelObjC}}</option>
+                      <option value="php">{{labelPhp}}</option>
+                      <option value="python">{{labelPython}}</option>
+                      <option value="ruby">{{labelRuby}}</option>
+                    </select>
+
+                    <div class="block code-sample hidden"><pre id="{{nickname}}-code-sample-content" class="prettyprint code-sample-content"></pre><button class="select-code-sample btn btn-primary">{{labelSelectCode}}</button></div>
+                  </div>
+                </div>
+              </div>
+              {{! .response end }}
+            </div>
+            {{! .accordion-inner end }}
+          </div>
+          {{! .accordion-body end }}
+        </div>
+        {{! .accordion-group end }}
+      </div>
+      {{! .accordion end }}
+    </div>
+    {{! .span12 end }}
+  </div>
+  {{! .row-fluid end }}
+
+</script>
+
+<script id="swagger-response-content-type-view-template" type="text/x-handlebars-template">
+  {{#if produces}}
+  <label for="{{contentTypeId}}"></label>
+  <select name="contentType" id="{{contentTypeId}}">
+    {{#each produces}}
+    <option value="{{this}}">{{this}}</option>
+    {{/each}}
+  </select>
+  {{/if}}
+</script>
+
+<script id="swagger-status-code-view-template" type="text/x-handlebars-template">
+  <td class="code">{{code}}</td>
+  <td>{{{message}}}</td>
+  <td>{{{mediaType}}}<span class="model-signature"></span></td>
+  <td>{{#if value}}<code>{{{value}}}</code>{{/if}}</td>
+</script>
+
+<script id="swagger-content-type-view-template" type="text/x-handlebars-template">
+  {{#if produces}}
+  <label for="contentType"></label>
+  <select name="contentType">
+    {{#each produces}}
+    <option value="{{this}}">{{this}}</option>
+    {{/each}}
+  </select>
+  {{/if}}
+</script>
+
+<script id="swagger-param-view-template" type="text/x-handlebars-template">
+  <td class="code span2">{{#if added}}
+    <div class="control-group"><input type="text" class="input-small" name="param-name" maxlength="50" data-max-length="50"
+                                      data-notblank="true" data-notblank-message="{{error.required}}" data-required="true" data-required-message="{{error.required}}"/></div>
+    {{else}}{{name}}{{/if}}
+  </td>
+  <td class="span2">
+    {{#if isBody}}
+    {{#if isFile}}
+    <input type="file" name="{{name}}"/>
+
+    <div class="parameter-content-type"></div>
+    {{else}}
+    {{#if default}}
+    <div class="parameter-content-type control-group"></div>
+    <br/>
+
+    <div class="control-group">
+      <textarea class="body-textarea" name="requestBody" data-param-type="requestBody">{{default}}</textarea>
+    </div>
+    {{else}}
+    <div class="parameter-content-type control-group"></div>
+    <br/>
+
+    <div class="control-group">
+      <textarea class="body-textarea" name="requestBody" data-param-type="requestBody"></textarea>
+    </div>
+    {{/if}}
+    {{/if}}
+    {{else}}
+    <div class="control-group">
+      {{#if isFile}}
+      <input type="file" name="{{name}}"/>
+
+      <div class="parameter-content-type"></div>
+      {{else}}
+      <input class="parameter" name="{{name}}" maxlength="8192" data-max-length="8192" {{#if added}}data-required="true"
+             data-notblank="true" data-notblank-message="{{error.required}}" data-required-message="{{error.required}}" data-user-added="true" {{/if}} data-param-type="{{#if
+      added}}query{{else}}{{paramType}}{{/if}}" name="{{name}}" placeholder="" type="text"
+      value="{{#if default}}{{default}}{{/if}}"/>
+      {{/if}}
+    </div>
+    {{/if}}
+  </td>
+  <td class="span3 apiexplorer-description-added-param">{{#if added}}{{labelAddedParameter}}{{else}}{{description}}{{/if}}</td>
+  <td class="span2">{{#if added}}
+    <select class="apiexplorer-param-type" name="param-type">
+      <option value="query">{{labelParamQuery}}</option>
+      <option value="header">{{labelParamHeader}}</option>
+      <option value="template">{{labelParamTemplate}}</option>
+    </select>{{else}}{{paramType}}{{/if}}
+  </td>
+  <td class="span2 apiexplorer-datatype-blank">
+    <span class="model-signature"></span>
+  </td>
+  <td class="center span1">{{#if added}}<a class="remove-entry"><i class="icon-portal-cross red1"></i></a>{{/if}}</td>
+</script>
+
+<script id="swagger-param-required-view-template" type="text/x-handlebars-template">
+  <td class="code required">{{name}}</td>
+  <td>
+    {{#if isBody}}
+    {{#if isFile}}
+    <input type="file" name="{{name}}"/>
+    {{else}}
+    {{#if default}}
+    <div class="control-group parameter-content-type"/>
+    <br/>
+
+    <div class="control-group">
+      <textarea class="body-textarea" placeholder="({{labelRequired}})"  data-notblank="true" data-notblank-message="{{error.required}}" data-required="true"
+                data-required-message="{{error.required}}" name="requestBody" data-param-type="requestBody">{{default}}</textarea>
+    </div>
+    {{else}}
+    <div class="control-group parameter-content-type"></div>
+    <br/>
+
+    <div class="control-group">
+      <textarea class="body-textarea"  data-notblank="true" data-notblank-message="{{error.required}}" data-required="true" data-required-message="{{error.required}}" {{#if
+                required}}placeholder="({{labelRequired}})"{{/if}} name="requestBody" data-param-type="requestBody"></textarea>
+    </div>
+    {{/if}}
+    {{/if}}
+    {{else}}
+    <div class="control-group">
+      {{#if isFile}}
+      <input class="parameter" class="required" type="file" name="{{name}}" data-param-type="{{paramType}}"/>
+      {{else}}
+      <input class="parameter required" data-max-length="8192" maxlength="8192"  data-notblank="true" data-notblank-message="{{error.required}}"
+             data-required="true" data-required-message="{{error.required}}" name="{{name}}" data-param-type="{{paramType}}" {{#if
+             required}}placeholder="({{labelRequired}})"{{/if}} type="text" value="{{#if default}}{{default}}{{/if}}"
+      />
+      {{/if}}
+    </div>
+    {{/if}}
+  </td>
+  <td>
+    <strong>{{description}}</strong>
+  </td>
+  <td>{{paramType}}</td>
+  <td>
+    <span class="model-signature"></span>
+  </td>
+  <td></td>
+</script>
+
+<script id="swagger-param-list-view-template" type="text/x-handlebars-template">
+  <td class="code">{{name}}</td>
+  <td>
+    <select data-param-type="{{paramType}}" class="parameter" name="{{name}}">
+      {{#if required}}
+      {{else}}
+      {{#if default}}
+      {{else}}
+      {{#isArray this}}
+      {{else}}
+      <option selected="" value=""></option>
+      {{/isArray}}
+      {{/if}}
+      {{/if}}
+      {{#each allowableValues.descriptiveValues}}
+      {{#if isDefault}}
+      <option selected="" value="{{value}}">{{value}} (default)</option>
+      {{else}}
+      <option value="{{value}}">{{value}}</option>
+      {{/if}}
+      {{/each}}
+    </select>
+  </td>
+  <td>{{description}}</td>
+  <td>{{paramType}}</td>
+  <td>
+    <span class="model-signature"></span>
+  </td>
+  <td></td>
+</script>
+
+<script id="swagger-param-readonly-view-template" type="text/x-handlebars-template">
+  <td class="code">{{name}}</td>
+  <td>
+    {{#if isBody}}
+    <textarea class="body-textarea" readonly="readonly" data-param-type="{{paramType}}" name="requestBody"
+              data-param-type="requestBody">{{default}}</textarea>
+    {{else}}
+    {{#if default}}
+    {{default}}
+    {{else}}
+    (empty)
+    {{/if}}
+    {{/if}}
+  </td>
+  <td>{{description}}</td>
+  <td>{{paramType}}</td>
+  <td>
+    <span class="model-signature"></span>
+  </td>
+  <td></td>
+</script>
+
+<script id="swagger-param-readonly-required-view-template" type="text/x-handlebars-template">
+  <td class="code required">{{name}}</td>
+  <td>
+    {{#if isBody}}
+    <textarea class="body-textarea" readonly="readonly" placeholder="(required)" data-param-type="{{paramType}}"
+              name="requestBody" data-param-type="requestBody">{{default}}</textarea>
+    {{else}}
+    {{#if default}}
+    {{default}}
+    {{else}}
+    (empty)
+    {{/if}}
+    {{/if}}
+  </td>
+  <td>{{description}}</td>
+  <td>{{paramType}}</td>
+  <td>
+    <span class="model-signature"></span>
+  </td>
+  <td></td>
+</script>
+
+<script id="swagger-param-content-type-view-template" type="text/x-handlebars-template">
+  {{#if consumes}}
+  <label for="{{parameterContentTypeId}}">Parameter content type:</label>
+  <select name="mediaType" data-param-type="mediaType" id='{{parameterContentTypeId}}'>
+    {{#each consumes}}
+    <option value="{{this}}">{{this}}</option>
+    {{/each}}
+  </select>
+  {{/if}}
+</script>
+
+<script id="swagger-resource-view-template" type="text/x-handlebars-template">
+  <div class="row-fluid">
+    <div class="span6">
+      <h5>
+        <a href="#!/{{id}}" class="toggleEndpointList" data-index="{{nickname}}" data-id="{{id}}">{{name}}</a> {{#summary}} :
+        {{/summary}}{{summary}} </h5>
+        {{#if externalDocs}}
+            <p class="indent">
+                {{externalDocs.description}} <a href="{{externalDocs.url}}" target="_blank" id="{{nickname}}_external_docs">{{externalDocs.url}}</a>
+            </p>
+        {{/if}}
+    </div>
+    <div class="span6 right">
+      <ul class="options inline">
+        <li>
+          <a href="#!/{{id}}" id="endpointListTogger_{{id}}" class="toggleEndpointList" data-index="{{nickname}}" data-id="{{id}}">{{labelShowHide}}</a>
+        </li>
+        <li>
+          <a href="#" class="collapseResource" data-index="{{nickname}}" data-id="{{id}}">
+            {{labelListOperations}}
+          </a>
+        </li>
+        <li>
+          <a href="#" class="expandResource" data-index="{{nickname}}" data-id={{id}}>
+            {{labelExpandOperations}}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+  <ul class="endpoints" id="{{nickname}}_endpoint_list" style="display:none"></ul>
+</script>
+
+<script id="swagger-signature-view-template" type="text/x-handlebars-template">
+  <div>
+    <ul class="signature-nav">
+      <li><a class="description-link" href="#">{{labelModel}}</a></li>
+      <li><a class="snippet-link" href="#">{{labelModelSchema}}</a></li>
+    </ul>
+  <div>
+
+  <div class="signature-container">
+    <div class="description">
+      {{{signature}}}
+    </div>
+
+    <div class="snippet">
+      <pre class="wrap-text"><code>{{sampleJSON}}</code></pre>
+      <small class="notice"></small>
+    </div>
+  </div>
+</script>
+
+<script id="swagger-response-block-view-template" type="text/x-handlebars-template">
+  <pre class="prettyprint">{{content}}</pre>
+</script>
+
+<script id="swagger-apikey-button-view-template" type="text/x-handlebars-template">
+  <div class='auth_container' id='apikey_container'>
+    <div class='key_input_container'>
+      <div class='auth_label'><label for='input_apiKey_entry'>{{keyName}}</label></div>
+      <input placeholder='api_key' class='auth_input' id='input_apiKey_entry' name='apiKey' type='text'/>
+      <div class='auth_submit'><a class='auth_submit_button' id='apply_api_key' href='#' data-sw-translate>apply</a></div>
+    </div>
+  </div>
+</script>
+
+<script type="swagger-basic-auth-button-view-template" type="text/x-handlebars-template">
+  <div class='auth_button' id='basic_auth_button'><img class='auth_icon' src='images/password.jpeg'></div>
+  <div class='auth_container' id='basic_auth_container'>
+    <div class='key_input_container'>
+      <div class="auth_label"><label for="input_username" data-sw-translate>Username</label></div>
+      <input placeholder="username" class="auth_input" id="input_username" name="username" type="text"/>
+      <div class="auth_label"><label for="password" data-sw-translate>Password</label></div>
+      <input placeholder="password" class="auth_input" id="input_password" name="password" type="password"/>
+      <div class='auth_submit'><a class='auth_submit_button' id="apply_basic_auth" href="#">apply</a></div>
+    </div>
+  </div>
+</script>
+
+<script id="portal-apiexplorer-query-template" type="text/x-handlebars-template">
+  {{requestUrl}}{{matrixString}}{{#if params}}?{{/if}}{{paramString}}
+</script>
+
+
+<!--------------------
+Code samples
+--->
+
+
+<script id="portal-apiexplorer-php-code-template" type="text/x-handlebars-template">
+  $ch = curl_init();
+  $url = '{{targetEndpoint}}';{{#if templateParams}}
+  $templateParamNames = array({{#join templateParams}}'{{#templateParam name}}{{/templateParam}}'{{/join}});
+  $templateParamValues = array({{#join templateParams}}urlencode('{{value}}'){{/join}});
+  $url = str_replace($templateParamNames, $templateParamValues, $url);{{/if}}{{#if params}}
+  $queryParams = '?{{#join params delimiter=".'&"}}' . urlencode('{{name}}') . '=' . urlencode('{{value}}'){{/join}};{{/if}}{{#if matrixParams}}
+  $matrixParams = ';{{#join matrixParams delimiter=";"}}' . urlencode('{{name}}') . '=' . urlencode('{{value}}'){{/join}}';{{/if}}
+  curl_setopt($ch, CURLOPT_URL, $url{{#if matrixParams}} . $matrixParams{{/if}}{{#if params}} . $queryParams{{/if}});
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  curl_setopt($ch, CURLOPT_HEADER, FALSE);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, '{{method}}');{{#if requestBody}}
+  curl_setopt($ch, CURLOPT_POSTFIELDS, '{{#escapeSingleQuotes requestBody.value}}{{/escapeSingleQuotes}}');{{/if}}{{#if headers}}
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array({{#join headers}}'{{name}}: {{value}}'{{/join}}));{{/if}}
+  $response = curl_exec($ch);
+
+  if ($response === FALSE) {
+    die(curl_error($ch));
+  }
+
+  curl_close($ch);
+
+  var_dump($response);
+</script>
+<script id="portal-apiexplorer-java-code-template" type="text/x-handlebars-template">
+
+  import java.io.BufferedReader;
+  import java.io.IOException;
+  import java.io.InputStreamReader;{{#if requestBody}}
+  import java.io.OutputStream;{{/if}}
+  import java.net.HttpURLConnection;
+  import java.net.URL;{{#if params}}
+  import java.net.URLEncoder;{{/if}}
+
+  public class ApiExplorer {
+    public static void main(String[] args) throws IOException {
+      StringBuilder urlBuilder = new StringBuilder("{{targetEndpoint}}"{{#each templateParams}}.replace("{{#templateParam name}}{{/templateParam}}",
+      URLEncoder.encode("{{value}}", "UTF-8")){{/each}});{{#each matrixParams}}
+      urlBuilder.append(";" + URLEncoder.encode("{{name}}","UTF-8") + "=" + URLEncoder.encode("{{value}}", "UTF-8"));{{/each}}{{#if params}}
+      urlBuilder.append("?");
+      urlBuilder.append({{#join params delimiter=" + '&' + "}}URLEncoder.encode("{{name}}","UTF-8") + "=" +
+      URLEncoder.encode("{{value}}", "UTF-8"){{/join}});{{/if}}
+      URL url = new URL(urlBuilder.toString());
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setRequestMethod("{{method}}");{{#each headers}}
+      conn.setRequestProperty("{{name}}", "{{value}}");{{/each}}
+      {{#if requestBody}}
+      byte[] body = "{{#escapeDoubleQuotes requestBody.value}}{{/escapeDoubleQuotes}}".getBytes();
+      conn.setFixedLengthStreamingMode(body.length);
+      conn.setDoOutput(true);
+      OutputStream out = conn.getOutputStream();
+      out.write(body);
+      {{/if}}
+      System.out.println("Response code: " + conn.getResponseCode());
+      BufferedReader rd;
+      if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+        rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+      } else {
+        rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+      }
+      StringBuilder sb = new StringBuilder();
+      String line;
+      while ((line = rd.readLine()) != null) {
+        sb.append(line);
+      }
+      rd.close();
+      conn.disconnect();
+      System.out.println(sb.toString());
+    }
+  }
+</script>
+
+<script id="portal-apiexplorer-objc-code-template" type="text/x-handlebars-template">
+
+  #import &ltFoundation/Foundation.h&gt
+  #import &ltCoreFoundation/CoreFoundation.h&gt
+
+  @implementation NSString (URLEncoding)
+  //function used to encode query and matrix parameters
+  -(NSString *)urlEncodeUsingEncoding:(NSStringEncoding)encoding {
+    return (__bridge NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
+      (CFStringRef)self,
+      NULL,
+      (CFStringRef)@"!*'\"();:@&=+$,/?%#[]% ",
+      CFStringConvertNSStringEncodingToEncoding(encoding));
+  }
+  @end
+
+
+  int main (int argc, const char * argv[])
+  {
+    @autoreleasepool {
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSString *endpoint = [NSString stringWithFormat:@"{{targetEndpoint}}"];{{#each templateParams}}
+    endpoint = [endpoint stringByReplacingOccurrencesOfString:@"{{#templateParam name}}{{/templateParam}}" withString:[@"{{value}}"
+    urlEncodeUsingEncoding:NSUTF8StringEncoding]];{{/each}}{{#each headers}}
+    [request addValue:@"{{value}}" forHTTPHeaderField:@"{{name}}"];{{/each}}{{#if params}}
+    NSString *queryParams = [NSString stringWithFormat:@"?{{#join params delimiter="&"}}%@{{/join}}",{{#join params delimiter=","}}
+    [NSString stringWithFormat:@"%@=%@", [@"{{name}}" urlEncodeUsingEncoding:NSUTF8StringEncoding], [@"{{value}}"
+    urlEncodeUsingEncoding:NSUTF8StringEncoding]]]{{/join}};{{/if}}{{#if matrixParams}}
+    NSString *matrixParams = [NSString stringWithFormat:@";{{#join matrixParams delimiter=";"}}%@{{/join}}",{{#join matrixParams delimiter=","}}
+    [NSString stringWithFormat:@"%@=%@", [@"{{name}}" urlEncodeUsingEncoding:NSUTF8StringEncoding], [@"{{value}}"
+    urlEncodeUsingEncoding:NSUTF8StringEncoding]]{{/join}};{{/if}}
+    [request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@{{#if matrixParams}}%@{{/if}}{{#if params}}%@{{/if}}",endpoint{{#if matrixParams}},matrixParams{{/if}}{{#if params}},queryParams{{/if}}]]];
+    [request setHTTPMethod:@"{{method}}"];
+    [request setHTTPBody:[[NSString stringWithFormat:@"{{#escapeDoubleQuotes requestBody.value}}{{/escapeDoubleQuotes}}"] dataUsingEncoding:NSUTF8StringEncoding]];
+
+    NSHTTPURLResponse *urlResponse = nil;
+    NSError *error = [[NSError alloc] init];
+    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&urlResponse error:&error];
+    NSString *result = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
+    NSLog(@"Response Code: %ld", [urlResponse statusCode]);
+
+    if ([urlResponse statusCode] >= 200 && [urlResponse statusCode] < 300) {
+      NSLog(@"Response: %@", result);
+    }
+      return 0;
+    }
+  }
+
+</script>
+
+<script id="portal-apiexplorer-node-code-template" type="text/x-handlebars-template">
+  var request = require('request');
+  var url = '{{targetEndpoint}}'{{#each templateParams}}.replace(/{{templateParam name}}/g, encodeURIComponent('{{value}}')){{/each}};{{#if params}}
+  var queryParams = '?' + {{#join params delimiter=" + '&' + "}}encodeURIComponent('{{name}}') + '=' + encodeURIComponent('{{value}}'){{/join}};{{/if}}{{#if matrixParams}}
+  var matrixParams = ';'{{#join matrixParams delimiter=" + ';' + "}} + encodeURIComponent('{{name}}') + '=' + encodeURIComponent('{{value}}'){{/join}};{{/if}}
+  request({
+    url: url{{#if matrixParams}} + matrixParams{{/if}}{{#if params}} + queryParams{{/if}},{{#if requestBody}}
+    body: '{{#escapeSingleQuotes requestBody.value}}{{/escapeSingleQuotes}}',{{/if}}{{#if headers}}
+    headers: { {{#join headers}}'{{name}}':'{{value}}'{{/join}} },{{/if}}
+    method: '{{method}}'
+  }, function (error, response, body) {
+    console.log('Status', response.statusCode);
+    console.log('Headers', JSON.stringify(response.headers));
+    console.log('Reponse received', body);
+  });
+</script>
+
+<script id="portal-apiexplorer-javascript-code-template" type="text/x-handlebars-template">
+  var xhr = new XMLHttpRequest();
+  var url = '{{targetEndpoint}}'{{#each templateParams}}.replace(/{{templateParam name}}/g, encodeURIComponent('{{value}}')){{/each}};{{#if params}}
+  var queryParams = '?'{{#join params delimiter="+ '&'"}} + encodeURIComponent('{{name}}') + '=' + encodeURIComponent('{{value}}'){{/join}};{{/if}}{{#if matrixParams}}
+  var matrixParams = ';'{{#join matrixParams delimiter="+ ';'"}} + encodeURIComponent('{{name}}') + '=' + encodeURIComponent('{{value}}'){{/join}};{{/if}}
+  xhr.open('{{method}}', url{{#if matrixParams}} + matrixParams{{/if}}{{#if params}} + queryParams{{/if}});{{#each headers}}
+  xhr.setRequestHeader('{{name}}', '{{value}}');{{/each}}
+
+  xhr.onreadystatechange = function () {
+    if (this.readyState == 4) {
+      alert('Status: '+this.status+'\nHeaders: '+JSON.stringify(this.getAllResponseHeaders())+'\nBody: '+this.responseText);
+    }
+  };
+  xhr.send('{{#escapeSingleQuotes requestBody.value}}{{/escapeSingleQuotes}}');
+</script>
+
+<script id="portal-apiexplorer-ruby-code-template" type="text/x-handlebars-template">
+  require 'rubygems'
+  require 'rest_client'
+  require 'cgi'
+  url = '{{targetEndpoint}}'{{#each templateParams}}.gsub('{' + '{{name}}' + '}' , CGI::escape('{{value}}')){{/each}}{{#if matrixParams}}
+  matrixParams = ';' + {{#join matrixParams delimiter=" + ';' + "}}CGI::escape('{{name}}') + '=' + CGI::escape('{{value}}'){{/join}}{{/if}}
+  {{#if requestBody}}values = '{{#escapeSingleQuotes requestBody.value}}{{/escapeSingleQuotes}}'
+  {{/if}}headers  = { {{#join headers delimiter=" , "}}'{{name}}' => '{{value}}'{{/join}}{{#if headers}}, {{/if}}{{#if params}}:params => { {{#join params delimiter=" , "}}CGI::escape('{{name}}') => '{{value}}'{{/join}} }{{/if}} }
+  response = RestClient::Request.execute :method => '{{method}}', :url => url {{#if matrixParams}}+ matrixParams{{/if}}{{#if requestBody}} , :payload => values{{/if}}, :headers => headers
+  puts response
+</script>
+
+<script id="portal-apiexplorer-python-code-template" type="text/x-handlebars-template">
+  from urllib2 import Request, urlopen
+  from urllib import urlencode, quote_plus
+  url = '{{targetEndpoint}}' {{#each templateParams}}.replace('{' + '{{name}}' + '}',quote_plus('{{value}}')){{/each}}{{#if params}}
+  queryParams = '?' + urlencode({ {{#join params delimiter=","}}quote_plus('{{name}}') : '{{value}}'{{/join}} }) {{/if}}{{#if matrixParams}}
+  matrixParams = ';' + urlencode({ {{#join matrixParams delimiter=","}}quote_plus('{{name}}' : '{{value}}'{{/join}} }).replace('&',';'){{/if}}{{#if requestBody}}
+  values = '{{#escapeSingleQuotes requestBody.value}}{{/escapeSingleQuotes}}'{{/if}}{{#if headers}}
+  headers = { {{#join headers delimiter=","}}'{{name}}':'{{value}}' {{/join}} }{{/if}}
+  request = Request(url{{#if matrixParams}} + matrixParams{{/if}}{{#if params}} + queryParams{{/if}}{{#if requestBody}}
+    , data=values{{/if}}{{#if headers}}
+    , headers=headers{{/if}})
+  request.get_method = lambda: '{{method}}'
+  response_body = urlopen(request).read()
+  print response_body
+</script>
+
+<script id="portal-apiexplorer-curl-code-template" type="text/x-handlebars-template">
+  curl --include {{#if headers}} {{#each headers}} --header "{{name}}:{{value}}" {{/each}}{{/if}}\ {{#if requestBody}}
+  --data '{{requestBody.value}}' \ {{/if}}
+  --request {{method}} "{{#removeCurlyBrackets targetEndpoint}}{{/removeCurlyBrackets}}"
+</script>
+
+<script id="portal-apiexplorer-warning-template" type="text/x-handlebars-template">
+    <div class="data-row alert alert-warning">
+      {{{message}}}
+    </div>
+</script>

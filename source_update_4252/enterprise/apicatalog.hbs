@@ -1,0 +1,192 @@
+<script id="portal-apicatalog-default-view-template" type="text/x-handlebars-template">
+  <div class="row-fluid general-alerts-wrapper">
+    <div class="span12">
+      <div class="general-alerts"></div>
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="page-title span12 portal-page-title">
+      <h1>{{pageTitle}}</h1>
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span9">
+      <div class="alert alert-light">
+        <div class="row-fluid">
+          <div class="span6 infinite-scroll-length"></div>
+          <div class="right">
+            {{!-- <button class="btn btn-mini pull-right">Toggle All</button>
+            <button class="btn btn-mini pull-right">Show All</button> --}}
+            <button class="btn btn-mini list-filter-button pull-right" data-toggle="collapse"
+                    data-target="#api-filters">
+              {{labelFilters}}
+            </button>
+          </div>
+        </div>
+        <!-- filters //-->
+        <div id="api-filters" class="collapse">
+          <div class="row-fluid">
+            <div class="span12 table-filters">
+              <div class="control-group">
+                <label>{{labelApiName}}</label>
+                <input id="api-search-filter" type="text"/>
+              </div>
+
+              <div class="control-group">
+                <label>{{labelState}}</label>
+                <section class="layer7-selections">
+                  <input type="radio" name="state" value="all" checked="checked"/>
+                  <label for="all">{{labelAll}}</label>
+                  <input type="radio" name="state" value="enabled"/>
+                  <label for="enabled">{{labelEnabled}}</label>
+                  <input type="radio" name="state" value="disabled"/>
+                  <label for="disabled">{{labelDisabled}}</label>
+                  <input type="radio" name="state" value="deprecated"/>
+                  <label for="deprecated">{{labelDeprecated}}</label>
+                </section>
+              </div>
+              {{!--
+              <div class="control-group">
+                <label>Recent Activity</label>
+                <section class="layer7-selections">
+                  <input type="radio" name="activity" value="all" checked="checked" />
+                  <label for="all">All</label>
+                  <input type="radio" name="activity" value="new" />
+                  <label for="new">New</label>
+                  <input type="radio" name="activity" value="updated" />
+                  <label for="updated">Updated</label>
+                </section>
+              </div>
+              --}}
+              {{#unless isAnonymous}}
+                <div class="control-group">
+                  <label>{{labelVisibility}}</label>
+                  <section class="layer7-selections">
+                    <input type="radio" name="visibility" value="all" checked="checked"/>
+                    <label for="all">{{labelAll}}</label>
+                    <input type="radio" name="visibility" value="public"/>
+                    <label for="public">{{labelPublic}}</label>
+                    <input type="radio" name="visibility" value="private"/>
+                    <label for="private">{{labelPrivate}}</label>
+                  </section>
+                </div>
+              {{/unless}}
+              <div class="control-group">
+                <label>{{labelRecentActivity}}</label>
+                <section class="layer7-selections">
+                  <input type="radio" name="activity" value="all" checked="checked"/>
+                  <label for="all">{{labelAll}}</label>
+                  <input type="radio" name="activity" value="new"/>
+                  <label for="new">{{labelActivityNew}}</label>
+                  <input type="radio" name="activity" value="versioned"/>
+                  <label for="versioned">{{labelActivityVersioned}}</label>
+                </section>
+              </div>
+              <div class="control-group">
+                <button type="submit" class="apply btn btn-primary btn-mini">{{labelApply}}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- alert end //-->
+      <!-- table //-->
+      <div class="row-fluid">
+        <div class="span12">
+          <div id="apicatalog-list" class="accordion"></div>
+          <div class="row-fluid">
+            <div class="span12 center">
+              <button class="btn trigger-more">{{labelShowMore}}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a class="layer7-to-top-button">{{labelTop}}</a>
+    </div>
+
+    <div class="span3">
+      <div class="trial-video-sidebar">
+        <h4 class="trial-video-sidebar-header">{{labelLinkDiscoverApiHow}}</h4>
+        <div class="trial-video-sidebar-content">
+          <div class="trial-video-sidebar-content-inner">
+            <ol>
+              <li>{{labelTrialDiscoverApiContentStep1}}</li>
+              <li>{{labelTrialDiscoverApiContentStep2}}</li>
+              <li>{{labelTrialDiscoverApiContentStep3}} <a href="/admin/app/api-explorer">{{labelAppNavApiExplorer}}</a>.</li>
+            </ol>
+          </div>
+          <div class="trial-video-sidebar-video-link">
+            {{!--<a href="{{labelVideoDiscoverApiHref}}" data-poster="{{labelVideoDiscoverApiPoster}}" class="video-modal-trigger wizard-trial-help-video-trigger" target="_blank" title="{{labelVideoDiscoverApiTitle}}">
+              {{labelPlayVideo}} <img src="images/play-icon.png" width="19" height="19" />--}}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script id="portal-apicatalog-collection-entry-template" type="text/x-handlebars-template">
+  <div class="collection-entry">
+    <div>
+      <a>
+        <div class="row-fluid">
+          <div class="span4"><i class="{{apiStateIcon}}"></i>{{apiName}}
+            {{#if apiPublished}}
+              <span class="label label-info indent">{{labelActivityNew}}</span>
+            {{else}}
+              {{#if apiVersioned}}
+                <span class="label label-warning indent">{{labelVersioned}}</span>
+              {{/if}}
+            {{/if}}
+          </div>
+          <div class="span7 accordion-description">{{#if apiDescription}}{{apiDescription}}{{else}}&nbsp;{{/if}}</div>
+          <div class="span1">
+            <button class="btn btn-mini btn-primary pull-right">{{labelViewDetails}}</button>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div>
+      <div>
+        <div class="row-fluid leading">
+          <div class="span12">
+            <h3>{{labelApiDetails}}</h3>
+            <table class="table">
+              <tbody>
+              <tr>
+                <td class="loud">{{labelState}}</td>
+                <td class="{{stateStyle}}">{{apiPortalStatus}}</td>
+              </tr>
+              <tr>
+                <td class="loud">{{labelVersion}}</td>
+                <td>{{apiVersion}}</td>
+              </tr>
+              {{!-- <tr>
+                <td class="loud">{{labelDocs}}</td>
+                <td><a href="#">Link to Docs</a></td>
+              </tr> --}}
+              <tr>
+                <td class="loud">{{labelGetIt}}</td>
+                <td>{{apiApplicationUsage}} {{labelAppsUseThis}}</td>
+              </tr>
+              {{#unless isAnonymous}}
+                <tr>
+                  <td class="loud">{{labelVisibility}}</td>
+                  <td class="{{accessStatusStyle}}">{{apiAccessStatus}}</td>
+                </tr>
+              {{/unless}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script id="portal-apicatalog-no-data-rows-template" type="text/x-handlebars-template">
+  <div class="alert alert-warning">{{{message}}}</div>
+</script>

@@ -1,0 +1,592 @@
+<script id="portal-applications-list-view-template" type="text/x-handlebars-template">
+
+    <div class="row-fluid general-alerts-wrapper">
+        <div class="span12">
+            <div class="general-alerts"></div>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+        <div class="page-title span8 portal-page-title">
+            <h1>{{applications}}</h1>
+        </div>
+        <div class="span4 right portal-page-actions">
+            <button class="add-application btn btn-primary">{{addApplication}}</button>
+        </div>
+    </div>
+
+    <div class="row-fluid portal-main">
+        <div class="span12">
+
+            <div class="datagrid">
+                <div class="datagrid-controls-header">
+                    <div class="row-fluid">
+                        <div class="bulk-actions span3 datagrid-dropdown"></div>
+                        <div class="span6 pagination datagrid-pagination center"></div>
+                        <div class="span3 datagrid-multi-page right">
+                            <label>{{displayPerPage}}
+                                <select class="layer7-select page-size">
+                                    <option class="page-size-opt" value="10">10</option>
+                                    <option class="page-size-opt" value="25">25</option>
+                                    <option class="page-size-opt" value="50">50</option>
+                                    <option class="page-size-opt" value="100">100</option>
+                                </select></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="datagrid-table">
+
+                    <table id="data-grid" class="table table-hover">
+                        <thead>
+                        <tr class="datagrid-header">
+                            <th class="span5">{{applicationName}}</th>
+                            <th class="span5">{{organization}}</th>
+                            <th class="span1 center">{{state}}</th>
+                            <th class="span1 center">{{actions}}</th>
+                        </tr>
+                        <tr class="datagrid-header datagrid-filters">
+                            <th class="span1 center"></th>
+                            <th class="span6">
+                                <input id="org-search-filter" type="text"/>
+                            </th>
+                            <th class="span1 center">
+                                <select class="layer7-select application-state-filter">
+                                    <option value="">{{allCaps}}</option>
+                                    <option value="ENABLED">{{enabled}}</option>
+                                    <option value="DISABLED">{{disabled}}</option>
+                                    <option value="EDIT_APPLICATION_PENDING_APPROVAL">{{pending}}</option>
+                                </select>
+                            </th>
+                            <th class="span1 center"></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="datagrid-controls-footer">
+                    <div class="row-fluid">
+                        <div class="bulk-actions span3 datagrid-dropdown"></div>
+                        <div class="pagination span6 datagrid-pagination center"></div>
+                        <div class="apieula-page-info span3 datagrid-page-number right"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-container"></div>
+</script>
+
+<script id="portal-applications-data-rows-template" type="text/x-handlebars-template">
+    <tr id="row-id-{{uiid}}" class="data-row">
+        <td class="span5">{{name}}{{#if apiGroup}}&nbsp;<span class="label label-info">{{apiGroupLabel}}</span>{{/if}}</td>
+        <td class="span5">{{orgName}}</td>
+        <td class="span1 center"><a class="layer7-tooltip" data-tooltip-content="{{appStateTooltipContent}}"><i
+                class="{{appStateIcon}}"></i></a></td>
+        <td class="span1 center">
+            <div class="dropdown dropdown-mini">
+                <button class="btn dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-portal-all"></i><span
+                        class="caret"></span></button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+                    <li><a class="edit-application {{#if isDisabled}}control-disabled{{/if}}" data-application-id="{{uiid}}" role="menuitem" tabindex="-1"
+                           href="#"><i class="icon-portal-edit"></i> {{edit}}</a></li>
+                    <li><a class="show-delete-modal {{#if isDisabled}}control-disabled{{/if}}" data-applications-id="{{uiid}}" role="menuitem" tabindex="-1"
+                           href="#"><i class="icon-portal-delete"></i> {{delete}}</a></li>
+                </ul>
+            </div>
+        </td>
+    </tr>
+</script>
+
+<script id="portal-applications-no-data-rows-template" type="text/x-handlebars-template">
+    <tr class="data-row alert alert-warning">
+        <td colspan="4"><i class="icon-portal-error"></i> {{{message}}}</td>
+    </tr>
+</script>
+
+
+<script id="portal-applications-form-view-template" type="text/x-handlebars-template">
+
+    {{! form start }}
+    <div class="row-fluid portal-main">
+        <div class="span12">
+            <form id="application-form">
+                <div class="row-fluid general-alerts-wrapper">
+                    <div class="span12">
+                        <div class="general-alerts"></div>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class="page-title span12 portal-page-title">
+                        <h1>{{pageHeader}}</h1>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="row-fluid">
+                            <div class="layer7-form-wizards" data-prev-string="{{labelPrevious}}"
+                                 data-next-string="{{labelNext}}" data-enforce-steps="true">
+                                <div class="span3">
+                                    {{> portal-applications-form-view-wizard-tabs}}
+                                </div>
+                                <div class="span6 portal-form-body">
+                                    <div>
+                                        {{> portal-applications-form-view-organization-tab}}
+                                        {{> portal-applications-form-view-info-tab}}
+                                        {{> portal-applications-form-view-api-management-tab}}
+                                        {{> portal-applications-form-view-auth-tab}}
+                                    </div>
+                                </div>
+                                <div class="span3">
+                                    <div class="trial-video-sidebar">
+                                        <h4 class="trial-video-sidebar-header">{{labelLinkAddAppHow}}</h4>
+                                        <div class="trial-video-sidebar-content">
+                                            <div class="trial-video-sidebar-content-inner">
+                                                <ol>
+                                                    <li>{{labelTrialAddAppContentStep1}}</li>
+                                                    <li>{{labelTrialAddAppContentStep2}}</li>
+                                                    <li>{{labelTrialAddAppContentStep3}}</li>
+                                                    <li>{{labelTrialAddAppContentStep4}}</li>
+                                                    <li>{{labelTrialAddAppContentStep5}}</li>
+                                                </ol>
+                                            </div>
+									{{!--
+                                            <div class="trial-video-sidebar-video-link">
+                                                <a href="{{labelVideoApiKeyHref}}" data-poster="{{labelVideoApiKeyPoster}}" class="video-modal-trigger wizard-trial-help-video-trigger" target="_blank" title="{{labelVideoApiKeyTitle}}">
+                                                    {{labelPlayVideo}} <img src="images/play-icon.png" width="19" height="19" />
+                                                </a>
+                                            </div>
+                                            <div class="trial-video-sidebar-links">
+                                                <p><a href="{{labelLinkAddAppDocsHref}}" target="_blank">{{labelButtonViewDocumentation}}</a></p>
+                                            </div>
+									--}}
+                                        </div>
+                                    </div>
+                                </div>
+                                {{! submit and cancel buttons }}
+                                <div class="row-fluid">
+                                    <div class="span9 right">
+                                        <button class="application-form-save-button btn btn-primary control-disabled disabled"
+                                                type="submit">{{labelCreate}}</button>
+                                        <a class="application-form-cancel-button btn">{{labelCancel}}</a>
+                                    </div>
+                                </div>
+                            </div>{{! row-fluid }}
+                        </div>{{! span12 }}
+                    </div>{{! row-fluid}}
+            </form>
+        </div>{{! span12 }}
+    </div>{{! row-fluid portal-main }}
+    {{! form end }}
+    <div id="modal-container"></div>
+</script>
+
+<script id="portal-applications-form-view-wizard-tabs-partial" type="text/x-handlebars-template">
+    <ul>
+        {{#unless editMode}}<li><a><span>{{labelOrgTitle}}</span><span
+                class="badge badge-important pull-right"></span><br>
+            <small>{{labelOrgDesc}}</small>
+        </a></li>
+        {{/unless}}<li><a><span>{{labelInfoTitle}}</span><span
+                class="badge badge-important pull-right"></span><br>
+            <small>{{labelInfoDesc}}</small>
+        </a></li>
+        <li><a><span>{{labelApiManagementTitle}}</span><span
+                class="badge badge-important pull-right"></span><br>
+            <small>{{labelApiManagementDesc}}</small>
+        </a></li>
+        <li><a><span>{{labelAuthTitle}}</span><span
+                class="badge badge-important pull-right"></span><br>
+            <small>{{labelAuthDesc}}</small>
+        </a></li>
+    </ul>
+</script>
+
+<script id="portal-applications-form-view-organization-tab-partial" type="text/x-handlebars-template">
+    <div>
+        <fieldset>
+            <legend>{{labelOrgTitle}}</legend>
+            <div class="control-group model-required"
+                 name="Applications-OrganizationUuid">
+                <label>{{labelSelectedOrg}} *</label>
+
+                <div id="selected-org-name" class="alternate"></div>
+                <label>{{labelAvailableOrgs}}</label>
+            </div>
+            <div id="application-select-org" class="layer7-accordion alternate"
+                 data-open-multiple="true"></div>
+        </fieldset>
+    </div>
+</script>
+
+<script id="portal-applications-form-view-info-tab-partial" type="text/x-handlebars-template">
+    <div>
+        <fieldset>
+            <legend>{{labelInfoTitle}}</legend>
+            {{#if editMode}}<div class="row-fluid leading">
+                <div class="span3"><strong>{{labelOrganizationName}}: </strong>
+                </div>
+                <div class="span9">{{organizationName}}</div>
+            </div>
+            <div class="row-fluid leading">
+                <div class="span3"><strong>{{labelApiKey}}: </strong></div>
+                <div class="span9">{{apiKey}}</div>
+            </div>
+            <hr/>{{/if}}
+            <div class="control-group" name="Applications-Name">
+                <label>{{labelApplicationName}} *</label>
+                <input id="app-name" type="text" data-required="true"
+                       data-required-message="{{error.required}}" maxlength="50"
+                       {{#if editMode}}value="{{appName}}"{{/if}} data-remote="{{uniqueCheckUrl}}"
+                       data-remote-quote-string="true" data-remote-parameter="Name"
+                       data-remote-datatype="json"
+                       data-remote-message="{{error.notUnique}}"
+                       data-remote-extra-param=""/>
+
+                <p class="help-block">{{labelNameMaxLength}} {{labelApplicationNameUniqueHint}}</p>
+            </div>
+            {{#if editMode}}<div class="control-group" name="Applications-Status">
+                <label>{{labelState}} *</label>
+                <section class="layer7-selections">
+                    <input type="radio" name="app-state" value="enabled"
+                           {{#if appStatus}}checked="checked"{{/if}}/>
+                    <label for="enabled">{{labelStateEnabled}}</label>
+                        <input type="radio" name="app-state" value="disabled"
+                               {{#unless appStatus}}checked="checked"{{/unless}}/ >
+                    <label for="disabled">{{labelStateDisabled}}</label>
+                </section>
+            </div>{{/if}}
+            <div class="control-group" name="Applications-Description">
+                <label>{{labelPublicDescription}}</label>
+                <textarea name="public-description" id="public-description"
+                          maxlength="255" data-maxlength="255"
+                          class="textarea-block not-parsley-required"
+                          placeholder="{{placeholderEnterText}}...">{{#if editMode}}{{appDescription}}{{/if}}</textarea>
+
+                <p class="help-block">{{labelPublicDescriptionMaxLength}}</p>
+            </div>
+            {{#if hasCustomFields}}<fieldset id="app-custom-fields">
+                <legend>{{labelCustomFields}}</legend>
+            </fieldset>{{/if}}
+        </fieldset>
+
+    </div>
+</script>
+
+<script id="portal-applications-form-view-api-management-tab-partial" type="text/x-handlebars-template">
+    <div>
+        <fieldset>
+            <legend>{{labelApiManagementTitle}}</legend>
+            <div class="control-group model-required" name="Applications-ApiIds" alt-name="Applications-ApiGroupIds">
+                <label>{{labelSelectedApis}} *</label>
+
+                <div id="selected-apis" class="layer7-accordion row-fluid alternate"
+                     data-open-multiple="true" data-required="true"></div>
+            </div>
+            <div class="control-group">
+                <label>{{labelAvailableApis}}</label>
+
+                <div>
+                    <section id="api-search-filter" class="layer7-selections"/>
+                </div>
+                <div id="available-apis" class="layer7-accordion row-fluid alternate"
+                     data-open-multiple="true"></div>
+            </div>
+        </fieldset>
+
+    </div>
+</script>
+
+<script id="portal-applications-form-view-auth-tab-partial" type="text/x-handlebars-template">
+    <div>
+        <fieldset>
+            <legend>{{labelOAuth}}</legend>
+            {{#if editMode}}<div class="row-fluid leading">
+                <div class="span3"><strong>{{labelApiKey}}: </strong></div>
+                <div class="span9">{{apiKey}}</div>
+            </div>
+             <div class="control-group">
+                <div class="row-fluid leading">
+                    <div class="span3"><strong>{{labelSharedSecret}}: </strong>
+                    </div>
+                    <div class="span9"><span
+                            id="application-shared-secret">{{sharedSecret}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid leading">
+                <div class="span12">
+                    <button id="request-new-secret"
+                            class="btn btn-mini btn-primary">{{labelRequestSharedSecret}}</button>
+                </div>
+            </div>{{else}}<p>{{labelApiKeySharedSecretAutoGenerated}}</p>{{/if}}
+            <div class="control-group" name="Applications-OauthCallbackUrl">
+                <label for="oauth-callback-url">{{labelCallbackURL}}</label>
+                <textarea name="oauth-callback-url" id="oauth-callback-url"
+                          maxlength="2048" data-maxlength="2048"
+                          class="textarea-block  not-parsley-required"
+                          placeholder="{{placeholderCallbackUrl}}">{{#if editMode}}{{appOauthCallbackUrl}}{{/if}}</textarea>
+
+                <p class="help-block">{{helptextCallbackURL}}</p>
+            </div>
+            <div class="control-group" name="Applications-OauthScope">
+                <div class="control-group-header">
+                    <label for="oauth-scope">{{labelScope}}</label>
+                    <span class="control-help-popover popover-trigger-info" rel="popover" data-placement="right" data-html="true" data-content="{{labelScopeTooltip}}"></span>
+                </div>
+                <textarea name="oauth-scope" id="oauth-scope" maxlength="450"
+                          data-maxlength="450"
+                          class="textarea-block not-parsley-required"
+                          placeholder="OOB">{{#if editMode}}{{appOauthScope}}{{/if}}</textarea>
+
+                <p class="help-block">{{helptextScope}}</p>
+            </div>
+            <div class="control-group" name="Applications-OauthType">
+                <div class="control-group-header">
+                    <label>{{labelType}}</label>
+                    <span class="control-help-popover popover-trigger-info" rel="popover" data-placement="right" data-html="true" data-content="{{labelTypeTooltip}}"></span>
+                </div>
+                <section class="layer7-selections">
+                    <input type="radio" name="oauth-type" value="none"
+                           {{#if editMode}}{{#if appOauthTypeNone}}checked="checked"{{/if}}{{else}}checked="checked"{{/if}}>
+                    <label for="none">{{labelNone}}</label>
+                    <input type="radio" name="oauth-type" value="public"
+                            {{#if editMode}}{{#if appOauthTypePublic}}checked="checked"{{/if}}{{/if}}>
+                    <label for="public">{{labelPublic}}</label>
+                    <input type="radio" name="oauth-type" value="confidential"
+                            {{#if editMode}}{{#if appOauthTypeConfidential}}checked="checked"{{/if}}{{/if}}>
+                    <label for="confidential">{{labelConfidential}}</label>
+                </section>
+            </div>
+            {{#if mssoEnabled}}
+            <div class="control-group" name="Applications-Msso">
+                <label>{{labelMSSO}} *</label>
+                <section class="layer7-selections">
+                    <input type="radio" name="app-enable-msso" value="enabled"{{#if useMSSO}} checked="checked"{{/if}}/>
+                    <label for="enabled">{{labelEnabled}}</label>
+                    <input type="radio" name="app-enable-msso" value="disabled"{{#unless useMSSO}} checked="checked"{{/unless}} />
+                    <label for="disabled">{{labelDisabled}}</label>
+                </section>
+            </div>
+
+            <section class="msso-section">
+                <fieldset>
+                    <legend>{{labelMSSO}}</legend>
+                    {{#if editMode}}
+                    <div class="control-group">
+                        <div class="row-fluid leading">
+                            <div class="span3"><strong>{{labelMSSOMasterKey}}: </strong></div>
+                            <div class="span9">
+                                <span id="application-msso-masterkey">{{magMasterKey}}</span>
+                                <p class="help-block">{{helptextMSSOKey}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {{else}}<p>{{labelMSSOKeyAutoGenerate}}</p>{{/if}}
+                   <hr/>
+                   <label>{{labelMSSOAvailableFeatures}}:</label>
+                   <p class="help-block">{{helptextMSSOOpenidScope}}</p>
+                   {{> portal-applications-form-view-scope-module}}
+
+                </fieldset>
+            </section>
+            {{/if}}
+        </fieldset>
+
+    </div>
+</script>
+
+<script id="portal-applications-form-view-scope-module-partial" type="text/x-handlebars-template">
+    {{#each magOptionalScope}}
+      {{> portal-applications-form-view-scope-entry
+        scope=this
+        scopeDescriptions=../scopeDescriptions
+        labelDisabled=../labelDisabled
+        labelEnabled=../labelEnabled
+      }}
+    {{/each}}
+</script>
+
+<script id="portal-applications-form-view-scope-entry-partial" type="text/x-handlebars-template">
+    <div class="control-group" name="Applications-Msso">
+        <label>{{#if requiredScope}}{{objKeyValue scopeDescriptions scope}}{{else}}{{objKeyValue scopeDescriptions scope.name}}{{/if}}</label>
+        {{#if labelRequired}}
+         <span>{{labelRequired}}</span>
+        {{else}}
+        <section class="layer7-selections msso-scope-selections">
+            <input type="radio" name="{{scope.name}}" data-scope="{{scope.name}}" value="enabled"{{#if scope.enabled}} checked="checked"{{/if}}/>
+            <label for="enabled">{{labelEnabled}}</label>
+            <input type="radio" name="{{scope.name}}" value="disabled"{{#unless scope.enabled}} checked="checked"{{/unless}}/ >
+            <label for="disabled">{{labelDisabled}}</label>
+          </section>
+          {{/if}}
+    </div>
+</script>
+
+
+<script id="portal-applications-org-entry-template" type="text/x-handlebars-template">
+    <div>
+        <div>
+            <a>
+                <div class="row-fluid">
+                    <div class="span10">{{orgName}}</div>
+                    {{#if select}}
+                        <div class="span2 right">
+                            <button class="btn btn-mini btn-success select-org"
+                                    data-org-id="{{orgId}}">{{select}}</button>
+                        </div>
+                    {{/if}}
+                    {{#if remove}}
+                        <div class="span2 right">
+                            <button class="btn btn-mini btn-danger remove-org"
+                                    data-org-id="{{orgId}}">{{remove}}</button>
+                        </div>
+                    {{/if}}
+                </div>
+            </a>
+        </div>
+        <div>
+            <div>{{orgDesc}}</div>
+        </div>
+    </div>
+</script>
+
+<script id="portal-applications-edit-form-view-template" type="text/x-handlebars-template">
+
+    {{! form start }}
+    <div class="row-fluid portal-main">
+        <div class="span12">
+            <form id="application-form">
+                <div class="row-fluid general-alerts-wrapper">
+                    <div class="span12">
+                        <div class="general-alerts"></div>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class="page-title span12 portal-page-title">
+                        <h1>{{pageHeader}}</h1>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="row-fluid">
+                            <div class="layer7-form-wizards" data-prev-string="{{labelPrevious}}"
+                                 data-next-string="{{labelNext}}">
+                                <div class="span3">
+                                    {{> portal-applications-form-view-wizard-tabs}}
+                                </div>
+                                <div class="span9 portal-form-body">
+                                    <div>
+                                        {{> portal-applications-form-view-info-tab}}
+                                        {{> portal-applications-form-view-api-management-tab}}
+                                        {{> portal-applications-form-view-auth-tab}}
+                                    </div>
+                                </div>
+                                {{! save and cancel buttons }}
+                                <div class="row-fluid">
+                                    <div class="span12 right">
+                                        <button class="application-form-save-button btn btn-primary disabled control-disabled"
+                                                type="submit">{{labelSave}}</button>
+                                        <a class="application-form-cancel-button btn">{{labelCancel}}</a></div>
+                                </div>
+                            </div>
+                        </div>{{! row-fluid }}
+                    </div>{{! span12 }}
+                </div>{{! row-fluid}}
+            </form>
+        </div>{{! span12 }}
+    </div>{{! row-fluid portal-main }}
+    {{! form end }}
+    <div id="modal-container"></div>
+</script>
+
+
+<script id="portal-applications-form-api-eula-accept-body-template" type="text/x-handlebars-template">
+    <div class="scrollable-section">{{{eulaContent}}}</div>
+</script>
+
+<script id="portal-applications-form-multiple-api-eula-accept-body-template" type="text/x-handlebars-template">
+  <div id="multiple-eula-section" class="scrollable-section" style="overflow-y:visible;">
+    {{#each this}}
+      <div class="collection-entry accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" href="eula-list-section{{@index}}">
+            <div class="row-fluid">
+              <div class="span11">{{name}}</div>
+              <div class="span1">
+                <button class="btn btn-mini btn-primary pull-right">{{labelViewDetails}}</button>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="accordion-body collapse" id="eula-list-section{{@index}}" style="height: 0px;">
+          <div class="accordion-inner">
+            <div class="row-fluid leading">
+              <div class="span12">
+                {{{eulaContent}}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</script>
+
+<script id="portal-applications-form-api-eula-accept-footer-template" type="text/x-handlebars-template">
+    <button id="{{acceptEulaId}}" class="btn-primary btn select-api-id control-disabled disabled"
+            data-api-id="{{apiId}}">{{acceptEulaTermsAndCondition}}</button>
+    <button id="{{cancelId}}" class="btn">{{cancel}}</button>
+</script>
+
+<script id="portal-applications-form-apigroup-multiple-eula-accept-footer-template" type="text/x-handlebars-template">
+    <button id="{{acceptEulaId}}" class="btn-primary btn select-apigroup-id control-disabled disabled"
+            data-apigroup-id="{{apiGroupId}}">{{acceptEulaTermsAndCondition}}</button>
+    <button id="{{cancelId}}" class="btn">{{cancel}}</button>
+</script>
+
+<script id="portal-applications-form-org-changed-modal-footer-template" type="text/x-handlebars-template">
+    <button id="{{acceptOrgChangeId}}" class="btn-primary btn select-org" data-confirm="true"
+            data-org-id="{{orgId}}">{{labelOK}}</button>
+    <button id="{{cancelOrgChangeId}}" class="btn">{{labelCancel}}</button>
+</script>
+
+<script id="portal-applications-form-auth-confirm-change-secret-template" type="text/x-handlebars-template">
+    <button id="confirm-change-secret" class="btn btn-primary" type="submit">{{ok}}</button>
+    <button id="cancel-change-secret" class="btn" type="button">{{cancel}}</button>
+</script>
+
+<script id="portal-applications-form-auth-confirm-change-msso-masterkey-template" type="text/x-handlebars-template">
+    <button id="confirm-change-msso-masterkey" class="btn btn-primary" type="submit">{{ok}}</button>
+    <button id="cancel-change-msso-masterkey" class="btn" type="button">{{cancel}}</button>
+</script>
+
+<script id="portal-applications-form-api-filter-item" type="text/x-handlebars-template">
+    <input name="api-name" value="{{name}}" type="radio">
+    <label for="{{name}}">{{name}}</label>
+</script>
+
+<script id="portal-applications-custom-field-single-select" type="text/x-handlebars-template">
+    <div class="control-group" name="Applications-CustomFieldValues.{{fieldId}}.Value">
+        <label>{{fieldLabel}} {{#if required}}*{{/if}}</label>
+        <select id="{{fieldId}}" {{#if required}}data-required="true"{{/if}}
+                data-required-message="{{error.required}}" data-label="{{fieldLabel}}">
+            <option value disabled selected>{{labelCustomFieldPlaceholder}}</option>
+        </select>
+    </div>
+</script>
+<script id="portal-applications-custom-field-select-option" type="text/x-handlebars-template">
+    <option value="{{rawValue}}" {{#if selected}}selected{{/if}}>{{value}}</option>
+</script>
+<script id="portal-applications-custom-field-text" type="text/x-handlebars-template">
+    <div class="control-group" name="Applications-CustomFieldValues.{{fieldId}}.Value">
+        <label>{{fieldLabel}} {{#if required}}*{{/if}}</label>
+        <textarea id="{{fieldId}}" {{#if required}}data-required="true" data-required-message="{{error.required}}"{{/if}} maxlength="5000" data-maxlength="5000">{{textValue}}</textarea>
+    </div>
+</script>

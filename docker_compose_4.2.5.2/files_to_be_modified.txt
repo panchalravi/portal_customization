@@ -1,0 +1,107 @@
+Steps
+-----
+After you download latest upgrade/patch version of Portal, always run the default upgrade steps first before customization. This is required to verify any code changes between the versions and customize the codes accordingly. The upgrade steps can normally be found on the below link.
+
+
+1. Copy below files from dispatcher and enterprise containers to the host system.
+	Dispatcher
+		cd /home/portal/customization/4252/dispatcher/original
+		docker container cp <<container_id>>:/www/data/apimconsole/main_d9d908cacd14929f36e0.js apimconsole_main.js
+		docker container cp <<container_id>>:/www/data/appearance/main_843447aaec43bc038e5b.js apperance_main.js
+		docker container cp <<container_id>>:/www/data/dev/main_ec489a9f1cb5e1cf1731.js dev_main.js
+		
+		cd ..
+		cp original/*.js .
+		sudo chown 1010:1010 *
+		sudo chmod go+rx *
+		
+	Enterprise
+		cd /home/portal/customization/4252/enterprise/original
+		docker container cp <<container_id>>:/var/lib/jetty/webapps/admin/WEB-INF/templates/apis.hbs .
+		docker container cp <<container_id>>:/var/lib/jetty/webapps/admin/WEB-INF/templates/apicatalog.hbs .
+		docker container cp <<container_id>>:/var/lib/jetty/webapps/admin/WEB-INF/templates/apiexplorer.hbs .
+		docker container cp <<container_id>>:/var/lib/jetty/webapps/admin/WEB-INF/templates/applications.hbs .
+		docker container cp <<container_id>>:/var/lib/jetty/webapps/admin/WEB-INF/pages/home.jsp .
+		cd ..
+		cp original/* .
+		sudo chown 1010:1010 *.*
+		sudo chmod go+r *
+		
+2. docker-compose-portal.yml file changes
+	portal-enterprise:
+	  volumes:
+		- /home/portal/customization/4252/enterprise/apis.hbs:/var/lib/jetty/webapps/admin/WEB-INF/templates/apis.hbs
+		- /home/portal/customization/4252/enterprise/apicatalog.hbs:/var/lib/jetty/webapps/admin/WEB-INF/templates/apicatalog.hbs
+		- /home/portal/customization/4252/enterprise/apiexplorer.hbs:/var/lib/jetty/webapps/admin/WEB-INF/templates/apiexplorer.hbs
+		- /home/portal/customization/4252/enterprise/applications.hbs:/var/lib/jetty/webapps/admin/WEB-INF/templates/applications.hbs
+		- /home/portal/customization/4252/enterprise/home.jsp:/var/lib/jetty/webapps/admin/WEB-INF/pages/home.jsp
+	
+	portal-dispatcher:
+	  volumes:
+	    - /home/portal/customization/4252/dispatcher/apimconsole_main.js:/www/data/apimconsole/main_d9d908cacd14929f36e0.js
+		- /home/portal/customization/4252/dispatcher/apperance_main.js:/www/data/appearance/main_843447aaec43bc038e5b.js
+		- /home/portal/customization/4252/dispatcher/dev_main.js:/www/data/dev/main_ec489a9f1cb5e1cf1731.js
+		- /home/portal/customization/cms_config.nginx:/etc/nginx/cms_config.nginx
+
+3. Dispatcher - /www/data/dev/main_ec489a9f1cb5e1cf1731.js
+
+	- Search for all occurrences of "rights reserved" and replace the text with for e.g. "Krunsgri Bank"
+	- Search for all occurrences of "ca.com" and replace support link with for e.g. "https://www.krungsri.com/apim-support.html"
+
+
+4. Dispatcher - /www/data/appearance/main_843447aaec43bc038e5b.js
+
+	- Search for all occurrences of "rights reserved" and replace the text with for e.g. "Krunsgri Bank"
+	- Search for all occurrences of "ca-support" and replace support link with for e.g. "https://www.krungsri.com/apim-support.html"
+
+
+5. Dispatcher - /www/data/apimconsole/main_d9d908cacd14929f36e0.js
+
+	- Search for all occurrences of "rights reserved" and replace the text with for e.g. "Krunsgri Bank"
+	- Search for all occurrences of "ca-support" and replace support link with for e.g. "https://www.krungsri.com/apim-support.html"
+
+6. Enterprise - /var/lib/jetty/webapps/admin/WEB-INF/templates/apis.hbs
+	
+	Comment out following lines
+	- {{!--<p><a href="{{labelLinkPublishApiDocsHref}}" target="_blank">{{labelButtonViewDocumentation}}</a></p>--}}
+	- {{!--<p><a href="{{labelLinkPublishApiDocsHref}}" target="_blank">{{labelButtonViewDocumentation}}</a></p>--}}
+
+7. Enterprise - /var/lib/jetty/webapps/admin/WEB-INF/templates/apicatalog.hbs
+	Comment out following line
+	 {{!--<a href="{{labelVideoDiscoverApiHref}}" data-poster="{{labelVideoDiscoverApiPoster}}" class="video-modal-trigger wizard-trial-help-video-trigger" target="_blank" title="{{labelVideoDiscoverApiTitle}}">^
+      {{labelPlayVideo}} <img src="images/play-icon.png" width="19" height="19" />--}}^M
+	  
+8. Enterprise - /var/lib/jetty/webapps/admin/WEB-INF/templates/apiexplorer.hbs
+	Comment out following lines
+		{{!--
+          <div class="trial-video-sidebar-video-link">
+            <a href="{{labelVideoTestApiHref}}" data-poster="{{labelVideoTestApiPoster}}" class="video-modal-trigger wizard-trial-help-video-trigger" target="_blank" title="{{labelVideoTestApiTitle}}">
+              {{labelPlayVideo}} <img src="images/play-icon.png" width="19" height="19" />
+            </a>
+          </div>
+          <div class="trial-video-sidebar-links">
+            <p><a href="{{labelLinkTestApiDocsHref}}" target="_blank">{{labelButtonViewDocumentation}}</a></p>
+          </div>
+        --}}
+
+9. Enterprise - /var/lib/jetty/webapps/admin/WEB-INF/templates/applications.hbs
+	Comment out following lines
+		{{!--
+		<div class="trial-video-sidebar-video-link">^M
+			<a href="{{labelVideoApiKeyHref}}" data-poster="{{labelVideoApiKeyPoster}}" class="video-modal-trigger wizard-trial-help-video-trigger" target="_blank" title="{{la
+				{{labelPlayVideo}} <img src="images/play-icon.png" width="19" height="19" />^M
+			</a>^M
+		</div>^M
+		<div class="trial-video-sidebar-links">^M
+			<p><a href="{{labelLinkAddAppDocsHref}}" target="_blank">{{labelButtonViewDocumentation}}</a></p>^M
+		</div>^M
+		--}}
+		
+10. Enterprise - /var/lib/jetty/webapps/admin/WEB-INF/pages/home.jsp
+
+
+
+
+
+	
+
